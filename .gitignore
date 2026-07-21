@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Raw data (only include BOOLS-EX1)
+data/raw_data/*
+!data/raw_data/BOOLS-EX1/
+
+# Processed data
+data/process_data/
+
+# Model checkpoints & training outputs
+*.pt
+*.pth
+*.pkl
+*.npz
+
+# Test results (images, etc.)
+test_results/
+
+# Other
+*.docx
+*.pdf
