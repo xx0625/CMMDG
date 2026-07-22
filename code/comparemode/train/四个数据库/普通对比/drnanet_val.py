@@ -190,7 +190,9 @@ if __name__ == "__main__":
     model_name = "drnanet"
 
     # 参数配置
-    base_path = "F:/xx_5090/CMMDG/data/process_data/psd"
+    _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    _PROJECT_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', '..')
+    base_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data', 'psd')
     databases = ["nback", "stew", "matb", "mg"]
     load_suffix = "_load_psd.csv"
     unload_suffix = "_unload_psd.csv"

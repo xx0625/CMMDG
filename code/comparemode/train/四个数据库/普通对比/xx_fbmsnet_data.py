@@ -82,13 +82,15 @@ def load_and_filter(csv_path, filter_bank, db_name, n_timesteps=256, channel=14,
 # 主程序
 if __name__ == "__main__":
     # 参数配置
-    base_path = r"F:/xx_5090/CMMDG/data/process_data"
+    _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    _PROJECT_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', '..')
+    base_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data')
     databases = ["matb56", "mg56"]#["nback", "stew","matb" , "mg"]  # , "stew", "nback",
     load_suffix = "_load_time.csv"
     unload_suffix = "_unload_time.csv"
     n_timesteps = 128
     channel = 14
-    save_dir = "F:/xx/data/datav4/filtered_mat_data_hamming"
+    save_dir = os.path.join(_PROJECT_ROOT, 'data', 'process_data', 'filtered_mat_data_hamming')
     window_type = 'hamming'  # 可选择 'hamming', 'hanning', 'blackman', 'None'
 
     if not os.path.exists(save_dir):

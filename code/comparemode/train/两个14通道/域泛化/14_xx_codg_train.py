@@ -26,6 +26,9 @@ try:
 except ImportError:
     raise ImportError("请确保上一步提供的 'model_14ch.py' 文件在当前目录下，或者修改导入路径。")
 
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', '..')
+
 # ===================== 核心配置 =====================
 # RSM-CoDG 特定参数
 TIME_STEPS = 5  # STFT 后生成的时间步长
@@ -216,7 +219,7 @@ if __name__ == "__main__":
     os.makedirs("./best", exist_ok=True)
 
     # 路径配置 (请修改为你的实际路径)
-    base_path = "F:/xx_5090/CMMDG/data/process_data"
+    base_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data')
     databases = ["nback", "stew"]#, "matb", "mg"]
     load_suffix = "_load_time.csv"
     unload_suffix = "_unload_time.csv"

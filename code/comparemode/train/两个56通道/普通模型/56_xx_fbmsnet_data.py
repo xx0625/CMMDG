@@ -4,6 +4,9 @@ import os
 from scipy import signal
 from scipy import io as sio
 
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', '..')
+
 class FilterBank:
     def __init__(self, sr=128):
         self.sr = sr
@@ -82,13 +85,13 @@ def load_and_filter(csv_path, filter_bank, db_name, n_timesteps=256, channel=14,
 # 主程序
 if __name__ == "__main__":
     # 参数配置
-    base_path = r"F:/xx_5090/CMMDG/data/process_data"
+    base_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data')
     databases = ["matb56", "mg56"]#["nback", "stew","matb" , "mg"]  # , "stew", "nback",
     load_suffix = "_load_time.csv"
     unload_suffix = "_unload_time.csv"
     n_timesteps = 128
     channel = 56
-    save_dir = "F:/xx/data/datav4/filtered_mat_data"
+    save_dir = os.path.join(_PROJECT_ROOT, 'data', 'process_data', 'filtered_mat_data')
     window_type = 'None'  # 可选择 'hamming', 'hanning', 'blackman', 'None'
 
     if not os.path.exists(save_dir):

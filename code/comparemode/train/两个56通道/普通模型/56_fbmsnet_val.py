@@ -10,6 +10,9 @@ from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 import sys
 
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', '..')
+
 # 确保路径正确
 sys.path.append(r'..\..\..')
 from model import FBMSNet_Inception  # 导入 FBMSNet_Inception 模型
@@ -164,7 +167,7 @@ if __name__ == "__main__":
     model_name = "fbmsnet"
 
     # 参数配置
-    folder_path = 'F:/xx_5090/CMMDG/data/process_data/filtered_mat_data'
+    folder_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data', 'filtered_mat_data')
     databases = ["matb56", "mg56"]#, "matb", "mg"]#["nback", "stew"]
     load_suffix = "_load_time"
     unload_suffix = "_unload_time"

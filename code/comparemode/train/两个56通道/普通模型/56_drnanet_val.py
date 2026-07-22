@@ -10,6 +10,9 @@ import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt  # 新增绘图库
 
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', '..')
+
 # 请确保路径正确
 sys.path.append(r'..\..\..')
 from model import GRUModel
@@ -190,7 +193,7 @@ if __name__ == "__main__":
     model_name = "drnanet"
 
     # 参数配置
-    base_path = "F:/xx_5090/CMMDG/data/process_data/psd"
+    base_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data', 'psd')
     databases = ["matb56", "mg56"]#, "matb56", "mg56"]
     load_suffix = "_load_psd.csv"
     unload_suffix = "_unload_psd.csv"

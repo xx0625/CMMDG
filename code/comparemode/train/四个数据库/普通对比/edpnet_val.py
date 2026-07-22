@@ -158,7 +158,9 @@ if __name__ == "__main__":
     # 只要改这里，下面所有的保存文件都会自动加上这个前缀
     model_name = "edpnet"
 
-    base_path = "F:/xx_5090/CMMDG/data/process_data"
+    _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    _PROJECT_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', '..')
+    base_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data')
     databases = ["nback", "stew", "matb", "mg"]  # ["matb56", "mg56"]
     load_suffix = "_load_time.csv"
     unload_suffix = "_unload_time.csv"

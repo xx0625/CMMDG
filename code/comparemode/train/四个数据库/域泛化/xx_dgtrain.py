@@ -300,7 +300,9 @@ if __name__ == "__main__":
     os.makedirs("./best", exist_ok=True)
 
     # 配置你的路径
-    base_path = "F:/xx_5090/CMMDG/data/process_data"  # 请修改为实际路径
+    _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    _PROJECT_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', '..')
+    base_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data')
     databases = ["nback", "stew", "matb", "mg"]
     load_suffix = "_load_time.csv"
     unload_suffix = "_unload_time.csv"

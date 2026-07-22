@@ -12,6 +12,9 @@ from tqdm import tqdm
 import sys
 import copy  # 引入copy库用于保存最佳模型
 
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', '..')
+
 # 请确保路径正确
 sys.path.append(r'..\..\..')
 from model import SCVCNet
@@ -198,7 +201,7 @@ def prepare_datasets(train_dbs, test_db, folder_path, channel=14):
 if __name__ == "__main__":
     model_name = "scvcnet"
 
-    folder_path = "F:/xx/data/datav4"
+    folder_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data')
     databases = ["matb56", "mg56"]
     channel = 56
 

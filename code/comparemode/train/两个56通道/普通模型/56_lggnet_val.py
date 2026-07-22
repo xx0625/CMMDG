@@ -11,6 +11,9 @@ from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 import sys
 
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', '..')
+
 sys.path.append(r'..\..\..')
 from model import LGGNet
 import thop
@@ -160,7 +163,7 @@ if __name__ == "__main__":
     # === 核心修改：定义模型名称 ===
     model_name = "lggnet"
 
-    base_path = "F:/xx_5090/CMMDG/data/process_data"
+    base_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data')
     databases = ["matb56", "mg56"]#, "matb", "mg"]
     load_suffix = "_load_time.csv"
     unload_suffix = "_unload_time.csv"

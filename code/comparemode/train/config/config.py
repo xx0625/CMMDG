@@ -8,8 +8,14 @@
     cfg = get_experiment_config("四个数据库")  # 或 "两个56通道", "两个14通道"
 """
 
+import os
+
+# ===== 路径配置：基于脚本所在目录计算相对路径 =====
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_DATA_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', 'data', 'process_data')
+
 # ===== 数据路径 =====
-DATA_BASE_PATH = "F:/xx/data/datav4"
+DATA_BASE_PATH = _DATA_ROOT
 LOAD_SUFFIX = "_load_time.csv"
 UNLOAD_SUFFIX = "_unload_time.csv"
 

@@ -243,7 +243,7 @@ if __name__ == "__main__":
     os.makedirs(results_dir, exist_ok=True)
     os.makedirs("./best", exist_ok=True)
 
-    base_path = "F:/xx_5090/CMMDG/data/process_data"  # 请确保路径正确
+    base_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data')
 
     # === 现在可以无缝处理 2 个或 4 个数据集 ===
     databases = ["matb56", "mg56"]

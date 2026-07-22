@@ -164,7 +164,9 @@ if __name__ == "__main__":
     model_name = "fbmsnet"
 
     # 参数配置
-    folder_path = 'F:/xx_5090/CMMDG/data/process_data/filtered_mat_data'
+    _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    _PROJECT_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', '..')
+    folder_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data', 'filtered_mat_data')
     databases = ["nback", "stew", "matb", "mg"]#["nback", "stew"]
     load_suffix = "_load_time"
     unload_suffix = "_unload_time"

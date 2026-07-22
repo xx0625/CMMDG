@@ -1,16 +1,5 @@
 """
 CMMDG - Multi-Expert Domain Generalization Framework for Cross-Database CWL Assessment
-========================================================================================
-对应论文（manuscript.pdf）模块命名：
-1. CSCI: Cross-Sample Causal Intervention (跨样本因果干预)
-2. CPM: Causality-Preserving Mechanism (时序因果保持机制 - CPMPatchShuffler & CPMOrderPredictor)
-3. DCC: Dilated Causal Convolution (膨胀因果卷积 - TemporalConvNet)
-4. DEPE: Dynamic Positional Encoding (动态电极位置编码 - DynamicPositionalEncoding)
-5. LGSR: Local-to-Global Spatial Retention (局部到全局空间留存 - LGSR)
-6. DualBranchFusion: 双分支特征融合 (DualBranchFusion)
-7. SemanticEEGEncoder: 语义特征提取骨干网络 (SemanticEEGEncoder)
-8. PMOE: Prototype-based Mixture of Experts (基于原型的多专家路由 - PMOE)
-9. CMMDG: 整体框架模型 (CMMDG)
 """
 
 import torch

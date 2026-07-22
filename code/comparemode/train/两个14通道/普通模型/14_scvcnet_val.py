@@ -27,6 +27,9 @@ def setup_seed(seed):
 import thop
 from thop import profile
 
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', '..')
+
 
 def setup_seed(seed):
     np.random.seed(seed)
@@ -184,7 +187,7 @@ if __name__ == "__main__":
     # === 核心修改：定义模型名称 ===
     model_name = "scvcnet"
 
-    folder_path = "F:/xx_5090/CMMDG/data/process_data"
+    folder_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data')
     databases = ["nback", "stew"]#, "matb", "mg"]
     channel = 14
 

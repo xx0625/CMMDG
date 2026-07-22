@@ -4,8 +4,8 @@
 将原本12个重复的预处理脚本合并为一个。
 自动发现原始数据文件，支持所有数据集和通道配置。
 
-数据路径: f:/xx_5090/CMMDG/data/raw_data
-输出路径: f:/xx_5090/CMMDG/code/preprocessing/  (生成 *_psd.csv 和 *_time.csv)
+数据路径: code/../../data/raw_data (相对项目根目录: data/raw_data)
+输出路径: code/../../data/process_data (相对项目根目录: data/process_data)
 
 支持的预处理组合:
   数据集        | 通道数    | load(任务) | unload(静息)
@@ -39,10 +39,12 @@ import warnings
 mne.set_log_level('WARNING')
 random_state = 42
 
-# 当前脚本所在目录（输出目录）
-OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
+# 项目根目录 = 本脚本所在目录的上两级 (code/preprocessing/ -> ../../)
+_PROJECT_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..')
+# 输出目录 = data/process_data (相对于项目根目录)
+OUTPUT_DIR = os.path.join(_PROJECT_ROOT, 'data', 'process_data')
 # 原始数据根目录
-DATA_ROOT = os.path.join(OUTPUT_DIR, '..', '..', 'data', 'raw_data')
+DATA_ROOT = os.path.join(_PROJECT_ROOT, 'data', 'raw_data')
 
 # =====================================================================
 # 通道定义

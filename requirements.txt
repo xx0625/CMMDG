@@ -1,0 +1,41 @@
+# ============================================================
+# CMMDG - Cross-database Multi-expert Domain Generalization
+# ============================================================
+# 安装方式: pip install -r requirements.txt
+# 注意: torch使用CUDA 12.8版本，需要指定PyTorch官方索引
+# pip install -r requirements.txt --index-url https://download.pytorch.org/whl/cu128
+
+# ----- Core DL Framework -----
+torch==2.9.1+cu128
+torchvision==0.24.1+cu128
+torchaudio==2.9.1+cu128
+
+# ----- Scientific Computing -----
+numpy==2.1.2
+scipy==1.15.3
+pandas==2.3.3
+
+# ----- EEG Processing -----
+mne==1.11.0
+mne-icalabel==0.9.0
+
+# ----- Machine Learning -----
+scikit-learn==1.7.2
+
+# ----- Deep Learning Utilities -----
+einops==0.8.1
+thop==0.1.1.post2209072238
+torchsummary==1.5.1
+
+# ----- Visualization -----
+matplotlib==3.10.7
+
+# ----- Progress Bar -----
+tqdm==4.67.1
+
+# ----- Data Handling -----
+pillow==11.3.0
+
+# ----- Utilities -----
+requests==2.32.5
+pyyaml==6.0.3

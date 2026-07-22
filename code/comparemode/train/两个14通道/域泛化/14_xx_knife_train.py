@@ -22,6 +22,9 @@ knife_path = os.path.join(current_dir, 'KnIFE')
 if knife_path not in sys.path:
     sys.path.append(knife_path)
 
+# 计算项目根目录
+_PROJECT_ROOT = os.path.join(current_dir, '..', '..', '..', '..', '..')
+
 try:
     from alg.algs.Knife import Knife
 except ImportError:
@@ -235,7 +238,7 @@ if __name__ == "__main__":
     os.makedirs(results_dir, exist_ok=True)
     os.makedirs("./best", exist_ok=True)
 
-    base_path = "F:/xx_5090/CMMDG/data/process_data"
+    base_path = os.path.join(_PROJECT_ROOT, 'data', 'process_data')
     databases = ["nback", "stew"]#, "matb", "mg"]
     load_suffix = "_load_time.csv"
     unload_suffix = "_unload_time.csv"
