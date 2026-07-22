@@ -639,3 +639,89 @@ class CMMDG(nn.Module):
             return final_pred, weights
 
         return final_pred
+
+
+# ==============================================================================
+# 7. 模型测试与使用示例 (Example Usage)
+# ==============================================================================
+if __name__ == "__main__":
+    print("\n==================================================")
+    print("      CMMDG 模型架构测试与示例运行               ")
+    print("==================================================")
+
+    # 1. 基础超参数定义
+    batch_size = 8  # Batch 大小
+    n_electrodes = 14  # 脑电通道数 (通道/导联)
+    n_timesteps = 128  # 采样点数
+    n_classes = 2  # 分类类别数 (如: 0: 低负荷, 1: 高负荷)
+    num_domains = 3  # 训练集包含的源域数量 (专家数量)
+    sampling_rate = 128  # 采样率 (Hz)
+
+    # 2. 模拟输入数据准备
+    # EEG 信号格式: [Batch, 1, Electrodes, TimeSteps] 或 [Batch, Electrodes, TimeSteps]
+    # CMMDG 模型内部会自动处理 Channel 维度
+    dummy_x = torch.randn(batch_size, 1, n_electrodes, n_timesteps)
+    dummy_class_labels = torch.randint(0, n_classes, (batch_size,))
+    dummy_domain_labels = torch.randint(0, num_domains, (batch_size,))
+
+    print(f"\n[1] 数据形状准备:")
+    print(f"  - 输入 EEG 数据 (dummy_x)      : {dummy_x.shape}")
+    print(f"  - 类别标签 (dummy_class_labels): {dummy_class_labels.shape}")
+    print(f"  - 域标签   (dummy_domain_labels) : {dummy_domain_labels.shape}")
+
+    # 3. 实例化模型
+    # positional_matrix_path 可传入 CSV 路径或 "none"
+    model = CMMDG(
+        n_timesteps=n_timesteps,
+        n_electrodes=n_electrodes,
+        positional_matrix_path="none",  # 使用单位阵作为初始静态位置矩阵
+        n_classes=n_classes,
+        num_domains=num_domains,
+        sampling_rate=sampling_rate,
+        batch_size=batch_size,
+        patch_size=16,
+        tcn_kernel_size=7,
+        tcn_dropout=0.25,
+        weak_permutation_ratio=0.2,
+        strong_permutation_ratio=0.8,
+        intervention_lambda_range=(0.0, 0.1),
+        weight_positional_matrix=0.5
+    )
+
+    # 打印参数量
+    total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"\n[2] 模型实例化成功！")
+    print(f"  - 可训练总参数量 (Parameters): {total_params:,}")
+
+    # 4. 模拟训练模式 (Training Forward Pass)
+    model.train()
+    print(f"\n[3] 运行训练模式前向传播 (model.train())...")
+    expert_outs, weights, final_pred, loss_clc, loss_rm, fusion_embed = model(
+        x=dummy_x,
+        return_ppt_loss=True,
+        domain_labels=dummy_domain_labels,
+        class_labels=dummy_class_labels
+    )
+
+    print(f"  -> 最终融合预测 (final_pred)   : {final_pred.shape} (Shape: [Batch, n_classes])")
+    print(f"  -> 各专家分支预测 (expert_outs): {expert_outs.shape} (Shape: [Batch, num_domains, n_classes])")
+    print(f"  -> PMOE 动态路由权重 (weights) : {weights.shape} (Shape: [Batch, num_domains, 1])")
+    print(f"  -> 融合特征嵌入 (fusion_embed) : {fusion_embed.shape} (Shape: [Batch, n_electrodes*n_electrodes])")
+    print(f"  -> CPM 时序保持损失 (loss_clc) : {loss_clc.item():.4f}")
+    print(f"  -> CPM 鲁棒一致损失 (loss_rm)  : {loss_rm.item():.4f}")
+
+    # 5. 模拟推理/评估模式 (Evaluation Forward Pass)
+    model.eval()
+    print(f"\n[4] 运行推理模式前向传播 (model.eval())...")
+    with torch.no_grad():
+        # 推理模式默认仅返回最终的类别 logits 预测
+        eval_pred = model(dummy_x)
+        print(f"  -> 推理模式直接输出 (eval_pred): {eval_pred.shape}")
+
+        # 可选：获取专家权重分布
+        _, eval_weights = model(dummy_x, return_weights=True)
+        print(f"  -> 评估模式路由权重 (eval_weights): {eval_weights.squeeze(-1).shape}")
+
+    print("\n==================================================")
+    print("           CMMDG 测试通过，一切正常！             ")
+    print("==================================================\n")
