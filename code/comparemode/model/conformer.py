@@ -1,7 +1,9 @@
 """
 EEG Conformer 
+EEG Conformer - 卷积Transformer脑电解码模型
 
 Convolutional Transformer for EEG decoding
+将CNN和Transformer以简洁的方式结合，取得出色效果
 
 Couple CNN and Transformer in a concise manner with amazing results
 """

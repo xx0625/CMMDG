@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Apr 25 21:50:38 2021
+TS-SEFFNet - 时域-频域挤压激励特征融合网络
+TS-SEFFNet - Temporal-Spectral-based Squeeze-and-Excitation Feature Fusion Network
 
-@author: phantom
-
-code for TS-SEFFNet in the paper 
-"A Temporal-Spectral-based Squeeze-and-Excitation Feature Fusion Network for Motor Imagery EEG Decoding"
-这个版本是契合14通道的
+基于论文: "A Temporal-Spectral-based Squeeze-and-Excitation Feature Fusion Network for Motor Imagery EEG Decoding"
+This version is adapted for 14 channels / 这个版本是契合14通道的
 """
 
 import os

@@ -1,3 +1,11 @@
+"""
+GRU - 门控循环单元网络
+GRU - Gated Recurrent Unit Network
+
+基于Zhang等人著作的简单而有效的GRU网络结构。
+A simple but effective gate recurrent unit (GRU) network structure from the book of Zhang et al.
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,37 +13,18 @@ import torch.nn.functional as F
 
 class GRU(nn.Module):
     r'''
-    A simple but effective gate recurrent unit (GRU) network structure from the book of Zhang et al. For more details, please refer to the following information.
+    基于Zhang等人著作的简单而有效的门控循环单元(GRU)网络结构。
+    A simple but effective gate recurrent unit (GRU) network structure from the book of Zhang et al.
 
     - Book: Zhang X, Yao L. Deep Learning for EEG-Based Brain-Computer Interfaces: Representations, Algorithms and Applications[M]. 2021.
     - URL: https://www.worldscientific.com/worldscibooks/10.1142/q0282#t=aboutBook
     - Related Project: https://github.com/xiangzhang1015/Deep-Learning-for-BCI/blob/master/pythonscripts/4-1-2_GRU.py
 
-    Below is a recommended suite for use in emotion recognition tasks:
-
-    .. code-block:: python
-
-        from torcheeg.datasets import DEAPDataset
-        from torcheeg import transforms
-        from torcheeg.models import GRU
-        from torch.utils.data import DataLoader
-
-        dataset = DEAPDataset(root_path='./data_preprocessed_python',
-                              online_transform=transforms.ToTensor(),
-                              label_transform=transforms.Compose([
-                                  transforms.Select('valence'),
-                                  transforms.Binary(5.0),
-                              ]))
-
-        model = GRU(num_electrodes=32, hid_channels=64, num_classes=2)
-
-        x, y = next(iter(DataLoader(dataset, batch_size=64)))
-        model(x)
-
+    参数:
     Args:
-        num_electrodes (int): The number of electrodes, i.e., :math:`C` in the paper. (default: :obj:`32`)
-        hid_channels (int): The number of hidden nodes in the GRU layers and the fully connected layer. (default: :obj:`64`)
-        num_classes (int): The number of classes to predict. (default: :obj:`2`)
+        num_electrodes (int): 电极数量，即论文中的 C / The number of electrodes, i.e., C in the paper. (default: 32)
+        hid_channels (int): GRU层和全连接层中的隐藏节点数 / The number of hidden nodes in the GRU layers and fully connected layer. (default: 64)
+        num_classes (int): 要预测的类别数 / The number of classes to predict. (default: 2)
     '''
     def __init__(self,
                  num_electrodes: int = 32,

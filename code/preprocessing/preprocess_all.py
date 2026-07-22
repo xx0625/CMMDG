@@ -1,28 +1,36 @@
 """
 统一的EEG预处理流水线
+Unified EEG Preprocessing Pipeline
 =============================
 将原本12个重复的预处理脚本合并为一个。
+Merges 12 redundant preprocessing scripts into one unified pipeline.
 自动发现原始数据文件，支持所有数据集和通道配置。
+Automatically discovers raw data files, supports all datasets and channel configurations.
 
 数据路径: code/../../data/raw_data (相对项目根目录: data/raw_data)
+Data path: code/../../data/raw_data (relative to project root: data/raw_data)
 输出路径: code/../../data/process_data (相对项目根目录: data/process_data)
+Output path: code/../../data/process_data (relative to project root: data/process_data)
 
 支持的预处理组合:
+Supported preprocessing combinations:
   数据集        | 通道数    | load(任务) | unload(静息)
+  Dataset      | Channels | load(task) | unload(rest)
   -------------|----------|-----------|-------------
-  MATB (COG)   | 56/共享14 | matb56_load, matb共享_load | matb56_unload, matb共享_unload
-  MOBA (MG)    | 56/共享14 | mg56_load, mg共享_load   | mg56_unload, mg共享_unload
-  BOOLS (nBack)| 共享14   | nback共享_load           | nback共享_unload
-  STEW         | 共享14   | stew共享_load            | stew共享_unload
+  MATB (COG)   | 56/shared14 | matb56_load, matb_shared_load | matb56_unload, matb_shared_unload
+  MOBA (MG)    | 56/shared14 | mg56_load, mg_shared_load   | mg56_unload, mg_shared_unload
+  BOOLS (nBack)| shared14   | nback_shared_load           | nback_shared_unload
+  STEW         | shared14   | stew_shared_load            | stew_shared_unload
 
 使用方法:
-    python preprocess_all.py                    # 处理所有数据
-    python preprocess_all.py --dataset matb     # 只处理MATB
-    python preprocess_all.py --dataset mg       # 只处理MOBA
-    python preprocess_all.py --dataset nback    # 只处理nBack
-    python preprocess_all.py --dataset stew     # 只处理STEW
-    python preprocess_all.py --channels 56      # 只处理56导联
-    python preprocess_all.py --channels shared  # 只处理共享导联
+Usage:
+    python preprocess_all.py                    # Process all data
+    python preprocess_all.py --dataset matb     # Process only MATB
+    python preprocess_all.py --dataset mg       # Process only MOBA
+    python preprocess_all.py --dataset nback    # Process only nBack
+    python preprocess_all.py --dataset stew     # Process only STEW
+    python preprocess_all.py --channels 56      # Process only 56 channels
+    python preprocess_all.py --channels shared  # Process only shared channels
 """
 
 import mne
@@ -40,17 +48,22 @@ mne.set_log_level('WARNING')
 random_state = 42
 
 # 项目根目录 = 本脚本所在目录的上两级 (code/preprocessing/ -> ../../)
+# Project root = two levels up from this script's directory
 _PROJECT_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..')
 # 输出目录 = data/process_data (相对于项目根目录)
+# Output directory = data/process_data (relative to project root)
 OUTPUT_DIR = os.path.join(_PROJECT_ROOT, 'data', 'process_data')
 # 原始数据根目录
+# Raw data root directory
 DATA_ROOT = os.path.join(_PROJECT_ROOT, 'data', 'raw_data')
 
 # =====================================================================
 # 通道定义
+# Channel Definitions
 # =====================================================================
 
 # 56导联（全导联）
+# 56 channels (full montage)
 FULL_CHANNELS = [
     'Fp1', 'Fp2',
     'AF3', 'AF4',
@@ -64,12 +77,14 @@ FULL_CHANNELS = [
 ]
 
 # 14导联（共享导联）
+# 14 channels (shared montage)
 SHARED_CHANNELS = [
     'AF3', 'F7', 'F3', 'FC5', 'T7', 'P7', 'O1',
     'O2', 'P8', 'T8', 'FC6', 'F4', 'F8', 'AF4'
 ]
 
 # BrainVision格式的通道重命名映射
+# Channel renaming mapping for BrainVision format
 RENAME_DICT = {
     'FP1': 'Fp1', 'FZ': 'Fz', 'FCZ': 'FCz', 'PZ': 'Pz',
     'POZ': 'POz', 'OZ': 'Oz', 'FP2': 'Fp2', 'CPZ': 'CPz'
@@ -77,6 +92,7 @@ RENAME_DICT = {
 
 # =====================================================================
 # 频段定义
+# Frequency Band Definitions
 # =====================================================================
 
 FREQ_BANDS = [(4, 7), (8, 13), (14, 30), (31, 45)]
@@ -85,10 +101,12 @@ FREQ_BANDS_DEFAULT = FREQ_BANDS  # 修复下面代码中引用到的 FREQ_BANDS_
 
 # =====================================================================
 # 核心工具函数
+# Core Utility Functions
 # =====================================================================
 
 def extract_psd_features(raw, sfreq, freq_bands, n_fft):
     """从raw对象中提取PSD特征"""
+    """Extract PSD features from raw object"""
     all_band_features = []
     for (fmin, fmax) in freq_bands:
         band_psd_means = []
@@ -109,6 +127,7 @@ def extract_psd_features(raw, sfreq, freq_bands, n_fft):
 
 def run_ica_pipeline(raw, n_components=None, random_state=42):
     """执行ICA去伪影流程"""
+    """Run ICA artifact removal pipeline"""
     if n_components is None:
         n_components = len(raw.ch_names) - 1
 
@@ -151,7 +170,9 @@ def preprocess_subject(raw, channel_names, tmin, tmax, freq_bands,
                        low_freq=0.5, high_freq=50, ica_n_components=None):
     """
     对单个被试执行完整的预处理流水线。
+    Execute complete preprocessing pipeline for a single subject.
     返回 (psd_features, time_df) 或 (None, None) 如果跳过。
+    Returns (psd_features, time_df) or (None, None) if skipped.
     """
     # 检查可用通道
     available = raw.ch_names
@@ -206,6 +227,7 @@ def preprocess_subject(raw, channel_names, tmin, tmax, freq_bands,
 
 def build_psd_column_names(channel_names, freq_bands):
     """构建PSD特征的列名"""
+    """Build column names for PSD features"""
     col_names = []
     for (fmin, fmax) in freq_bands:
         for ch in channel_names:
@@ -216,6 +238,7 @@ def build_psd_column_names(channel_names, freq_bands):
 
 def save_dataset_results(all_psd, all_time, channel_names, freq_bands, name):
     """保存数据集的PSD和时域结果到CSV"""
+    """Save dataset PSD and time-domain results to CSV"""
     # 保存PSD
     if all_psd:
         all_array = np.vstack(all_psd)
@@ -239,10 +262,12 @@ def save_dataset_results(all_psd, all_time, channel_names, freq_bands, name):
 
 # =====================================================================
 # COG-BCI (MATB) 数据集
+# COG-BCI (MATB) Dataset
 # =====================================================================
 
 def process_matb56_load(channels_filter='all'):
     """MATB 任务态 - 56导联"""
+    """MATB task state - 56 channels"""
     if channels_filter not in ('all', '56'):
         return
 
@@ -286,6 +311,7 @@ def process_matb56_load(channels_filter='all'):
 
 def process_matb56_unload(channels_filter='all'):
     """MATB 静息态 (End + Beg 配对) - 56导联"""
+    """MATB resting state (End + Beg paired) - 56 channels"""
     if channels_filter not in ('all', '56'):
         return
 
@@ -342,6 +368,7 @@ def process_matb56_unload(channels_filter='all'):
 
 def process_matb_shared_load(channels_filter='all'):
     """MATB 任务态 - 共享14导联"""
+    """MATB task state - 14 shared channels"""
     if channels_filter not in ('all', 'shared'):
         return
 
@@ -384,6 +411,7 @@ def process_matb_shared_load(channels_filter='all'):
 
 def process_matb_shared_unload(channels_filter='all'):
     """MATB 静息态 (End + Beg 配对) - 共享14导联"""
+    """MATB resting state (End + Beg paired) - 14 shared channels"""
     if channels_filter not in ('all', 'shared'):
         return
 
@@ -440,9 +468,11 @@ def process_matb_shared_unload(channels_filter='all'):
 
 # =====================================================================
 # EEGMOBA (MG) 数据集 - 需通道重命名
+# EEGMOBA (MG) Dataset - requires channel renaming
 # =====================================================================
 
 # MOBA 任务态每个被试的专属时间窗（来自原始代码）
+# MOBA game task time windows per subject (from original code)
 MOBA_GAME_TIMES = {
     1: (610, 980), 2: (415, 785), 3: (390, 760), 4: (555, 925),
     5: (455, 825), 6: (510, 880), 7: (400, 770), 8: (175, 545),
@@ -455,6 +485,7 @@ MOBA_GAME_TIMES = {
 
 def _rename_brainvision_channels(raw):
     """对BrainVision格式的通道名进行标准化重命名"""
+    """Standardize channel names for BrainVision format"""
     rename_dict = {k: v for k, v in RENAME_DICT.items() if k in raw.ch_names}
     if rename_dict:
         raw.rename_channels(rename_dict)
@@ -463,7 +494,9 @@ def _rename_brainvision_channels(raw):
 def _discover_moba_files(task_type='game'):
     """
     发现EEGMOBA目录下的可用文件。
+    Discover available files in EEGMOBA directory.
     task_type: 'game' 或 'rest'
+    task_type: 'game' or 'rest'
     """
     base_dir = os.path.join(DATA_ROOT, 'EEGMOBA')
     suffix = 'MOBAgame_eeg.vhdr' if task_type == 'game' else 'restingeyeopen_eeg.vhdr'
@@ -473,6 +506,7 @@ def _discover_moba_files(task_type='game'):
 
 def process_mg56_load(channels_filter='all'):
     """MOBA 游戏任务态 - 56导联"""
+    """MOBA game task state - 56 channels"""
     if channels_filter not in ('all', '56'):
         return
 
@@ -519,6 +553,7 @@ def process_mg56_load(channels_filter='all'):
 
 def process_mg56_unload(channels_filter='all'):
     """MOBA 静息态 - 56导联"""
+    """MOBA resting state - 56 channels"""
     if channels_filter not in ('all', '56'):
         return
 
@@ -563,6 +598,7 @@ def process_mg56_unload(channels_filter='all'):
 
 def process_mg_shared_load(channels_filter='all'):
     """MOBA 游戏任务态 - 共享14导联"""
+    """MOBA game task state - 14 shared channels"""
     if channels_filter not in ('all', 'shared'):
         return
 
@@ -608,6 +644,7 @@ def process_mg_shared_load(channels_filter='all'):
 
 def process_mg_shared_unload(channels_filter='all'):
     """MOBA 静息态 - 共享14导联"""
+    """MOBA resting state - 14 shared channels"""
     if channels_filter not in ('all', 'shared'):
         return
 
@@ -652,10 +689,12 @@ def process_mg_shared_unload(channels_filter='all'):
 
 # =====================================================================
 # BOOLS-EX1 (nBack) 数据集 - EDF格式
+# BOOLS-EX1 (nBack) Dataset - EDF format
 # =====================================================================
 
 def process_nback_shared_load(channels_filter='all'):
     """nBack 任务态 (前20被试不同时间窗) - 共享14导联"""
+    """nBack task state (first 20 subjects with different time windows) - 14 shared channels"""
     if channels_filter not in ('all', 'shared'):
         return
 
@@ -707,6 +746,7 @@ def process_nback_shared_load(channels_filter='all'):
 
 def process_nback_shared_unload(channels_filter='all'):
     """nBack 静息态 - 共享14导联"""
+    """nBack resting state - 14 shared channels"""
     if channels_filter not in ('all', 'shared'):
         return
 
@@ -751,6 +791,7 @@ def process_nback_shared_unload(channels_filter='all'):
 
 # =====================================================================
 # STEW 数据集 - TXT格式 (需自定义解析)
+# STEW Dataset - TXT format (requires custom parsing)
 # =====================================================================
 
 STEW_CHANNELS = ['AF3', 'F7', 'F3', 'FC5', 'T7', 'P7', 'O1', 'O2', 'P8', 'T8', 'FC6', 'F4', 'F8', 'AF4']
@@ -759,6 +800,7 @@ STEW_SFREQ = 128
 
 def _read_stew_txt(txt_path):
     """读取STEW的txt文件并转为Raw对象"""
+    """Read STEW txt file and convert to Raw object"""
     try:
         data = pd.read_csv(txt_path, header=None, delim_whitespace=True, dtype=float).to_numpy()
     except Exception as e:
@@ -777,6 +819,7 @@ def _read_stew_txt(txt_path):
 
 def _discover_stew_files(condition='hi'):
     """发现STEW文件，condition: 'hi' (load) 或 'lo' (unload)"""
+    """Discover STEW files, condition: 'hi' (load) or 'lo' (unload)"""
     base_dir = os.path.join(DATA_ROOT, 'STEW')
     pattern = os.path.join(base_dir, f'sub*_{condition}.txt')
     return sorted(glob.glob(pattern))
@@ -784,6 +827,7 @@ def _discover_stew_files(condition='hi'):
 
 def process_stew_shared_load(channels_filter='all'):
     """STEW 高负荷 (hi, 心算任务) - 共享14导联"""
+    """STEW high load (hi, mental arithmetic task) - 14 shared channels"""
     if channels_filter not in ('all', 'shared'):
         return
 
@@ -827,6 +871,7 @@ def process_stew_shared_load(channels_filter='all'):
 
 def process_stew_shared_unload(channels_filter='all'):
     """STEW 低负荷 (lo, 休息) - 共享14导联"""
+    """STEW low load (lo, rest) - 14 shared channels"""
     if channels_filter not in ('all', 'shared'):
         return
 
@@ -869,6 +914,7 @@ def process_stew_shared_unload(channels_filter='all'):
 
 # =====================================================================
 # 主入口
+# Main Entry Point
 # =====================================================================
 
 def main():

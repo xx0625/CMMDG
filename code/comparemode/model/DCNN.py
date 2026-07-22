@@ -1,3 +1,11 @@
+"""
+DCNN - 深度卷积神经网络 (时域-频域双通道融合)
+DCNN - Deep Convolutional Neural Network (Time-Frequency Dual-Branch Fusion)
+
+使用可学习的权重alpha对时域和频域特征进行加权融合的EEG分类模型。
+EEG classification model using learnable weight alpha for time-frequency feature fusion.
+"""
+
 import torch
 import torch.nn as nn
 import torch.fft
@@ -6,16 +14,20 @@ import torch.nn.functional as F
 class DCNN(nn.Module):
     """
     一个用于EEG信号分类的深度卷积神经网络模型。
+    A deep convolutional neural network model for EEG signal classification.
     该模型使用可学习的权重 alpha 对时域和频域特征进行加权融合。
+    The model uses learnable weight alpha to fuse time-domain and frequency-domain features.
     融合公式: alpha * feature_time + (1 - alpha) * feature_freq
+    Fusion formula: alpha * feature_time + (1 - alpha) * feature_freq
 
     参数:
-    - input_channels (int): 输入EEG信号的通道数 (例如, 14)。
-    - num_classes (int): 分类任务的类别数 (例如, 2)。
-    - time_steps (int): 每个EEG样本的时间点数量 (例如, 128)。
-    - fc_hidden_size (int): 每个分支中全连接层的隐藏单元数。
-    - alpha_init (float): alpha的初始值，范围在[0,1]之间，默认为0.5
-    - trainable_alpha (bool): alpha是否可训练，默认为True
+    Args:
+    - input_channels (int): 输入EEG信号的通道数 (例如, 14) / Number of input EEG channels (e.g., 14)
+    - num_classes (int): 分类任务的类别数 (例如, 2) / Number of classes for classification (e.g., 2)
+    - time_steps (int): 每个EEG样本的时间点数量 (例如, 128) / Number of time points per EEG sample (e.g., 128)
+    - fc_hidden_size (int): 每个分支中全连接层的隐藏单元数 / Hidden units in fully connected layers
+    - alpha_init (float): alpha的初始值，范围在[0,1]之间，默认为0.5 / Initial alpha value in [0,1], default 0.5
+    - trainable_alpha (bool): alpha是否可训练，默认为True / Whether alpha is trainable, default True
     """
 
     def __init__(self, input_channels, num_classes, time_steps=128, fc_hidden_size=128,
@@ -80,6 +92,7 @@ class DCNN(nn.Module):
     def forward(self, x):
         """
         模型的前向传播。
+        Forward propagation of the model.
         """
         # --- 时域路径 ---
         time_out = self.time_conv_layers(x)

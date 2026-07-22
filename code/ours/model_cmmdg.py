@@ -1,5 +1,6 @@
 """
 CMMDG - Multi-Expert Domain Generalization Framework for Cross-Database CWL Assessment
+CMMDG - 跨数据库认知工作负荷评估的多专家域泛化框架
 """
 
 import torch
@@ -17,6 +18,7 @@ torch.backends.cudnn.allow_tf32 = True
 
 # ==============================================================================
 # 1. 跨样本因果干预模块 (CSCI: Cross-Sample Causal Intervention)
+# Cross-Sample Causal Intervention Module
 # ==============================================================================
 class CSCI(nn.Module):
     def __init__(self, tcn_layers: int, lambda_range: Tuple[float, float] = (0.0, 0.5)):
@@ -72,6 +74,7 @@ class CSCI(nn.Module):
 
 # ==============================================================================
 # 2. 时序因果保持机制 (CPM: Causality-Preserving Mechanism)
+# Causality-Preserving Mechanism Module
 # ==============================================================================
 class CPMPatchShuffler(nn.Module):
     def __init__(self, patch_size: int, permutation_ratio: float = 0.5):
@@ -143,6 +146,7 @@ class RobustConsistencyLoss(nn.Module):
 
 # ==============================================================================
 # 3. 膨胀因果卷积 (DCC: Dilated Causal Convolution)
+# Dilated Causal Convolution Module
 # ==============================================================================
 class Chomp1d(nn.Module):
     def __init__(self, chomp_size):
@@ -201,6 +205,7 @@ class DCC(nn.Module):
 
 # ==============================================================================
 # 4. 语义特征提取骨干网络 (SemanticEEGEncoder)
+# Semantic Feature Extraction Backbone Network
 # ==============================================================================
 class EEG_GhostModule(nn.Module):
     def __init__(self, inp, oup, kernel_size, stride=1, ratio=2, dw_size=3, padding=0, bias=False):
@@ -315,9 +320,10 @@ class SemanticEEGEncoder(nn.Module):
 
 # ==============================================================================
 # 5. 注意力、定位与融合模块 (LGSR, DualBranchFusion, DEPE)
+# Attention, Positioning & Fusion Modules
 # ==============================================================================
 class LGSR(nn.Module):
-    """Local-to-Global Spatial Retention (局部到全局空间留存模块)"""
+    """Local-to-Global Spatial Retention (局部到全局空间留存模块) / Local-to-Global Spatial Retention module"""
 
     def __init__(self, channels=14, num_blocks=4, dropout=0.5):
         super().__init__()
@@ -382,7 +388,7 @@ class LGSR(nn.Module):
 
 
 class DualBranchFusion(nn.Module):
-    """Dual Branch Feature Fusion (双分支特征融合模块)"""
+    """Dual Branch Feature Fusion (双分支特征融合模块) / Dual Branch Feature Fusion module"""
 
     def __init__(self, time_channels=4, freq_channels=4):
         super().__init__()
@@ -413,7 +419,7 @@ class DualBranchFusion(nn.Module):
 
 
 class DynamicPositionalEncoding(nn.Module):
-    """Dynamic Positional Encoding (动态电极位置编码模块 DEPE)"""
+    """Dynamic Positional Encoding (动态电极位置编码模块 DEPE) / Dynamic Positional Encoding module (DEPE)"""
 
     def __init__(self, input_dim, hidden_dim=64):
         super().__init__()
@@ -425,7 +431,7 @@ class DynamicPositionalEncoding(nn.Module):
 
 
 class PMOE(nn.Module):
-    """Prototype-based Mixture of Experts (基于原型的多专家路由 PMOE)"""
+    """Prototype-based Mixture of Experts (基于原型的多专家路由 PMOE) / Prototype-based Mixture of Experts module (PMOE)"""
 
     def __init__(self, feature_dim, num_domains, momentum=0.9):
         super().__init__()
@@ -459,6 +465,7 @@ class PMOE(nn.Module):
 
 # ==============================================================================
 # 6. 主模型类 (CMMDG)
+# Main Model Class (CMMDG)
 # ==============================================================================
 class CMMDG(nn.Module):
     def __init__(self, n_timesteps, n_electrodes, positional_matrix_path, n_classes,
@@ -526,7 +533,7 @@ class CMMDG(nn.Module):
             [nn.Linear(self.semantic_encoder.output_dim, n_classes) for _ in range(num_domains)])
 
     def _compute_canonical_frequency(self, x):
-        """Canonical Frequency Representation (CFR 分支)"""
+        """Canonical Frequency Representation (CFR 分支) / Canonical Frequency Representation branch"""
         with torch.amp.autocast('cuda', enabled=False):
             window = self.hamming_window
             stft = torch.stft(x.float().reshape(-1, x.size(-1)), n_fft=self.n_fft, hop_length=self.hop_length,
@@ -546,7 +553,7 @@ class CMMDG(nn.Module):
         return feat.view(x.size(0), self.n_electrodes, 4, 1).permute(0, 2, 1, 3)
 
     def cpm_branch(self, x):
-        """Causality-Preserving Mechanism (CPM 分支，计算 \mathcal{L}^{(CLC)} 与 \mathcal{L}^{(RM)})"""
+        """Causality-Preserving Mechanism (CPM 分支，计算 L_CLC 与 L_RM) / Causality-Preserving Mechanism branch (computes L_CLC and L_RM)"""
         raw_signal = x.squeeze(1)
         b, c, t = raw_signal.shape
         device = x.device
@@ -632,6 +639,7 @@ class CMMDG(nn.Module):
 
 # ==============================================================================
 # 7. 模型测试与使用示例 (Example Usage)
+# Model Testing & Usage Examples
 # ==============================================================================
 if __name__ == "__main__":
     print("\n==================================================")

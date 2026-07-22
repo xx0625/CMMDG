@@ -1,10 +1,13 @@
 """
 综合跨域一致性样本选择框架 (三合一整合版 - 无惰性缓存，每次全流程训练)
+Comprehensive Cross-Domain Consistency Sample Selection Framework (Integrated Version - No lazy caching, full training pipeline each run)
 与 model_cmmdg.py (CMMDG 架构) 完全对齐版本
+Fully aligned with model_cmmdg.py (CMMDG architecture)
 支持模式选择：
-1. "LODO"    : 4 个数据库 (nback, stew, matb, mg)，14 导联
-2. "LODO-SL" : 14 导联，2 个数据库 (nback, stew)
-3. "LODO-DL" : 56 导联，2 个数据库 (matb56, mg56)，含特殊通道重排与强力熔断机制
+Mode selection supported:
+1. "LODO"    : 4 databases (nback, stew, matb, mg), 14 channels
+2. "LODO-SL" : 14 channels, 2 databases (nback, stew)
+3. "LODO-DL" : 56 channels, 2 databases (matb56, mg56), with special channel reordering and circuit breaker mechanism
 """
 
 import os
@@ -21,17 +24,21 @@ from tqdm import tqdm
 
 # =========================================================================================
 # 路径配置：基于脚本所在目录计算相对路径
+# Path Configuration: Calculate relative paths based on script location
 # =========================================================================================
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _PROJECT_ROOT = os.path.join(_SCRIPT_DIR, '..', '..')
 
 # =========================================================================================
 # 1. 模式选择与参数配置区
+# Mode Selection & Parameter Configuration Section
 # =========================================================================================
 # 可选模式: "LODO", "LODO-SL", "LODO-DL"
+# Available modes: "LODO", "LODO-SL", "LODO-DL"
 MODE = "LODO-SL"
 
 # 基础全局配置
+# Basic global configuration
 MODEL_VERSION = "cmmdg"  # 对应 model_cmmdg.py
 BASE_PATH = os.path.join(_PROJECT_ROOT, 'data', 'process_data')
 SAVE_DIR = os.path.join(_SCRIPT_DIR, 'train_output')
@@ -115,6 +122,7 @@ CONFIGS = {
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 # 动态导入对应的模型类（优先查找 CMMDG，若无则使用 EEGPositionalTransformer）
+# Dynamically import the corresponding model class (prefer CMMDG, fallback to EEGPositionalTransformer)
 try:
     model_module = importlib.import_module(f"model_{MODEL_VERSION}")
 except ImportError:
@@ -143,6 +151,7 @@ def setup_seed(seed):
 
 # =========================================================================================
 # 2. 数据加载与处理模块
+# Data Loading & Processing Module
 # =========================================================================================
 def load_and_reshape(csv_path, db_name, n_timesteps=128, channel=14, use_special_56_indices=False, window_type=None):
     df = pd.read_csv(csv_path)
@@ -224,6 +233,7 @@ def prepare_data(train_dbs, test_db, base_path, load_suffix, unload_suffix, n_ti
 
 # =========================================================================================
 # 3. 工具与损失模块
+# Utility & Loss Module
 # =========================================================================================
 class EarlyStopping:
     def __init__(self, patience=7, verbose=False, delta=0, path='checkpoint.pt'):
@@ -301,6 +311,7 @@ def analyze_domain_similarity(model, X, y, domain_labels, dataset_name, train_db
 
 # =========================================================================================
 # 4. Stage 1 预训练逻辑
+# Stage 1 Pre-training Logic
 # =========================================================================================
 def pretrain_stage1_once(model, optimizer, scheduler, X_train, y_train, train_domains, X_val, y_val,
                          batch_size, num_train_domains, ckpt_best, test_db,
@@ -361,6 +372,7 @@ def pretrain_stage1_once(model, optimizer, scheduler, X_train, y_train, train_do
 
 # =========================================================================================
 # 5. Stage 2 打分筛选 & Stage 3 重训逻辑
+# Stage 2 Scoring & Selection & Stage 3 Retraining Logic
 # =========================================================================================
 def evaluate_and_prune_fused(model, X_train, y_train, train_domains, batch_size, prune_ratio, rho, alpha, beta, gamma):
     model.eval()
@@ -451,6 +463,7 @@ def train_loop_routine_stage3(model, optimizer, scheduler, early_stopping, X_tra
 
 # =========================================================================================
 # 6. 核心主控逻辑
+# Core Main Control Logic
 # =========================================================================================
 def main():
     cfg = CONFIGS[MODE]
@@ -487,7 +500,7 @@ def main():
 
         ckpt_best = os.path.join(SAVE_DIR, f"{cfg['CKPT_PREFIX']}_stage1_{test_db}_best.pt")
 
-        # --- Stage 1: 直接进行预训练 (无条件判定，不再读取缓存跳过) ---
+        # --- Stage 1: Direct pre-training (no conditional check, no cache skipping) ---
         setup_seed(GLOBAL_SEED)
         model_stage1_pre = EEGPositionalTransformer(
             n_timesteps=128, n_electrodes=cfg['CHANNELS'], n_classes=2, sampling_rate=128,
@@ -506,7 +519,7 @@ def main():
             epochs=cfg['STAGE1_EPOCHS'], patience=cfg['STAGE1_PATIENCE']
         )
 
-        # Stage 1 测试集精度与混淆矩阵打印
+        # Stage 1 test set accuracy and confusion matrix printing
         model_stage1_pre.load_state_dict(torch.load(ckpt_best))
         model_stage1_pre.eval()
         all_preds_s1, all_labels_s1 = [], []
@@ -522,7 +535,7 @@ def main():
         print(f"\n[Stage 1 Confusion Matrix - {test_db}]\n{cm_s1}")
         print(f"---> [{test_db}] 完成 Stage 1 预训练，最佳基座精度: {acc_s1:.4f} <---")
 
-        # --- Stage 2: 样本打分与净化 ---
+        # --- Stage 2: Sample scoring and purification ---
         print(f"\n[{test_db}] 开始 Stage 2 样本筛选 (剔除比例: {cfg['PRUNING_RATIO'] * 100:.1f}%)...")
         clean_X, clean_y, clean_d = evaluate_and_prune_fused(
             model_stage1_pre, X_train, y_train, train_domains, batch_size,
@@ -531,7 +544,7 @@ def main():
         del model_stage1_pre, optimizer1, scheduler1
         torch.cuda.empty_cache()
 
-        # --- Stage 3: 重训 ---
+        # --- Stage 3: Retraining ---
         print(f"[{test_db}] 开始 Stage 3 净化后重训...")
         setup_seed(GLOBAL_SEED)
         model_stage3 = EEGPositionalTransformer(
@@ -553,13 +566,13 @@ def main():
             epochs=cfg['STAGE3_EPOCHS']
         )
 
-        # 可选：域相似度分析 (LODO 4数据库模式下生效)
+        # Optional: Domain similarity analysis (enabled in LODO 4-database mode)
         if cfg['ANALYZE_SIMILARITY']:
             model_stage3.load_state_dict(torch.load(ckpt_stage3))
             analyze_domain_similarity(model_stage3, clean_X, clean_y, clean_d, f"CLEAN TRAIN Set ({test_db})", train_dbs, batch_size, device)
             analyze_domain_similarity(model_stage3, X_test, y_test, None, f"TEST Set ({test_db})", train_dbs, batch_size, device)
 
-        # --- Stage 4: 测试与混淆矩阵打印 ---
+        # --- Stage 4: Testing and confusion matrix printing ---
         model_stage3.load_state_dict(torch.load(ckpt_stage3))
         model_stage3.eval()
         all_preds, all_labels = [], []
@@ -580,7 +593,7 @@ def main():
         print(f"True 1: {str(cm[1][0]).ljust(6)} {str(cm[1][1]).ljust(6)}")
         print("-" * 30)
 
-        # --- 熔断机制判定 (仅在启用熔断的模式，如 LODO-DL 下生效) ---
+        # --- Circuit breaker mechanism (only enabled in modes like LODO-DL) ---
         if cfg['USE_CIRCUIT_BREAKER']:
             if test_db == "matb56" and acc < 0.60:
                 print(f"!!! 运行阵亡 !!! 在 {test_db} 的 Acc = {acc:.4f} < 0.60。触发强力熔断，停止后续测试。")
@@ -593,7 +606,7 @@ def main():
         branch_f1s.append(f1)
         print(f"-> 数据库 {test_db} 最终表现: Acc: {acc:.4f}, F1: {f1:.4f}\n")
 
-    # 汇总计算
+    # Summary calculation
     if len(branch_accs) == len(cfg['DATABASES']):
         mean_acc = np.mean(branch_accs)
         mean_f1 = np.mean(branch_f1s)

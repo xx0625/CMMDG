@@ -1,9 +1,12 @@
 """
 对比实验整合框架 - 共享工具函数
+Comparison Experiment Integration Framework - Shared Utility Functions
 ================================
 包含数据加载、预处理、早停法、评估等通用功能。
+Contains data loading, preprocessing, early stopping, evaluation, and other utility functions.
 
 用法：
+Usage:
     from utils import load_and_reshape, EarlyStopping, setup_seed, run_lodo_experiment
 """
 
@@ -21,6 +24,7 @@ from thop import profile
 
 
 # ==================== 种子设置 ====================
+# Seed Setting
 
 def setup_seed(seed):
     np.random.seed(seed)
@@ -33,21 +37,25 @@ def setup_seed(seed):
 
 
 # ==================== 数据加载与预处理 ====================
+# Data Loading & Preprocessing
 
 def load_and_reshape(csv_path, db_name, n_timesteps=128, channel=14, window_type='None'):
     """
     加载CSV脑电数据并进行滑动窗口切片
+    Load CSV EEG data and perform sliding window slicing
 
     参数:
-        csv_path: CSV文件路径
-        db_name: 数据库名称(用于构造身份标签)
-        n_timesteps: 窗口长度
-        channel: 导联数
-        window_type: 窗函数类型 ('None', 'hamming', 'hanning', 'blackman')
+    Args:
+        csv_path: CSV文件路径 / CSV file path
+        db_name: 数据库名称(用于构造身份标签) / Database name (used for constructing identity labels)
+        n_timesteps: 窗口长度 / Window length
+        channel: 导联数 / Number of channels
+        window_type: 窗函数类型 ('None', 'hamming', 'hanning', 'blackman') / Window function type
 
     返回:
+    Returns:
         reshaped_data: shape=(N, channel, n_timesteps)
-        reshaped_identities: 身份标签列表
+        reshaped_identities: 身份标签列表 / List of identity labels
     """
     df = pd.read_csv(csv_path)
     data = df.iloc[:, :channel].values * 1e6
@@ -79,18 +87,21 @@ def prepare_data(train_dbs, test_db, base_path, load_suffix, unload_suffix,
                  n_timesteps=256, channel=14, window_type='None'):
     """
     准备LODO交叉验证的训练/验证/测试数据
+    Prepare training/validation/test data for LODO cross-validation
 
     参数:
-        train_dbs: 训练数据库列表
-        test_db: 测试数据库名称
-        base_path: 数据根目录
-        load_suffix: 负荷态CSV后缀 (如 "_load_time.csv")
-        unload_suffix: 无负荷态CSV后缀 (如 "_unload_time.csv")
-        n_timesteps: 窗口长度
-        channel: 导联数
-        window_type: 窗函数类型
+    Args:
+        train_dbs: 训练数据库列表 / List of training databases
+        test_db: 测试数据库名称 / Test database name
+        base_path: 数据根目录 / Data root directory
+        load_suffix: 负荷态CSV后缀 (如 "_load_time.csv") / Load state CSV suffix
+        unload_suffix: 无负荷态CSV后缀 (如 "_unload_time.csv") / Unload state CSV suffix
+        n_timesteps: 窗口长度 / Window length
+        channel: 导联数 / Number of channels
+        window_type: 窗函数类型 / Window function type
 
     返回:
+    Returns:
         (X_train, y_train, train_identities,
          X_val, y_val, val_identities,
          X_test, y_test, test_identities)
@@ -160,9 +171,11 @@ def prepare_data(train_dbs, test_db, base_path, load_suffix, unload_suffix,
 
 
 # ==================== 早停法 ====================
+# Early Stopping
 
 class EarlyStopping:
     """早停法，监控验证集损失"""
+    """Early stopping, monitors validation loss"""
 
     def __init__(self, patience=7, verbose=False, delta=0, path='./best/checkpoint.pt'):
         self.patience = patience
@@ -195,9 +208,11 @@ class EarlyStopping:
 
 
 # ==================== FLOPs计算 ====================
+# FLOPs Calculation
 
 def compute_flops(model, channel, n_timesteps, device):
     """计算模型的参数量和FLOPs"""
+    """Compute model parameters and FLOPs"""
     print("\n=== 计算模型参数量和FLOPs ===")
     dummy_input = torch.randn(1, channel, n_timesteps).to(device)
     try:
@@ -211,9 +226,11 @@ def compute_flops(model, channel, n_timesteps, device):
 
 
 # ==================== 训练与绘图 ====================
+# Training & Plotting
 
 def train_one_epoch(model, X_train, y_train, optimizer, criterion, batch_size, device):
     """训练一个epoch"""
+    """Train for one epoch"""
     model.train()
     running_loss = 0.0
     total = 0
@@ -241,6 +258,7 @@ def train_one_epoch(model, X_train, y_train, optimizer, criterion, batch_size, d
 
 def validate(model, X_val, y_val, criterion):
     """验证集评估"""
+    """Validate on validation set"""
     model.eval()
     with torch.no_grad():
         val_outputs = model(X_val)
@@ -253,6 +271,7 @@ def validate(model, X_val, y_val, criterion):
 def save_training_curves(train_losses, val_losses, train_accs, val_accs,
                          model_name, test_db, results_dir):
     """保存训练曲线图"""
+    """Save training curves"""
     plt.figure(figsize=(12, 5))
 
     plt.subplot(1, 2, 1)
@@ -281,6 +300,7 @@ def save_training_curves(train_losses, val_losses, train_accs, val_accs,
 
 def test_and_save(model, X_test, y_test, model_name, test_db, results_dir):
     """测试并保存结果"""
+    """Test and save results"""
     model.eval()
     with torch.no_grad():
         test_outputs = model(X_test)
@@ -310,20 +330,24 @@ def test_and_save(model, X_test, y_test, model_name, test_db, results_dir):
 
 
 # ==================== 统一LODO实验入口 ====================
+# Unified LODO Experiment Entry
 
 def run_lodo_experiment(model_class, model_name, cfg, device, model_kwargs=None):
     """
     统一LODO实验入口 - 对所有模型适用
+    Unified LODO experiment entry - applicable to all models
 
     参数:
-        model_class: 模型类
-        model_name: 模型名称(用于结果保存)
-        cfg: 实验配置字典(来自config.get_experiment_config)
-        device: torch设备
-        model_kwargs: 传递给模型构造函数的额外参数
+    Args:
+        model_class: 模型类 / Model class
+        model_name: 模型名称(用于结果保存) / Model name (for result saving)
+        cfg: 实验配置字典(来自config.get_experiment_config) / Experiment config dict
+        device: torch设备 / Torch device
+        model_kwargs: 传递给模型构造函数的额外参数 / Extra kwargs passed to model constructor
 
     返回:
-        (all_acc, all_f1): 所有测试折的准确率和F1列表
+    Returns:
+        (all_acc, all_f1): 所有测试折的准确率和F1列表 / Lists of accuracy and F1 for all test folds
     """
     if model_kwargs is None:
         model_kwargs = {}

@@ -1,25 +1,31 @@
 """
 对比实验整合框架 - 统一配置
+Comparison Experiment Integration Framework - Unified Configuration
 ============================
 三种LODO实验的配置参数集中管理。
+Centralized management of configuration parameters for three LODO experiments.
 
 使用方法：
+Usage:
     from config import get_experiment_config
-    cfg = get_experiment_config("四个数据库")  # 或 "两个56通道", "两个14通道"
+    cfg = get_experiment_config("四个数据库")  # or "两个56通道", "两个14通道"
 """
 
 import os
 
 # ===== 路径配置：基于脚本所在目录计算相对路径 =====
+# Path Configuration: Calculate relative paths based on script location
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _DATA_ROOT = os.path.join(_SCRIPT_DIR, '..', '..', '..', '..', 'data', 'process_data')
 
 # ===== 数据路径 =====
+# Data Paths
 DATA_BASE_PATH = _DATA_ROOT
 LOAD_SUFFIX = "_load_time.csv"
 UNLOAD_SUFFIX = "_unload_time.csv"
 
 # ===== 通用训练参数 =====
+# General Training Parameters
 BATCH_SIZE = 128
 MAX_EPOCHS = 200
 PATIENCE = 20
@@ -28,6 +34,7 @@ N_TIMESTEPS = 128
 RANDOM_SEED = 42
 
 # ===== 三种LODO实验配置 =====
+# Three LODO Experiment Configurations
 EXPERIMENTS = {
     "四个数据库": {
         "description": "4折LODO - 全部4个数据库(14导联)",
@@ -51,7 +58,7 @@ EXPERIMENTS = {
 
 
 def get_experiment_config(exp_name):
-    """获取指定实验的配置"""
+    """获取指定实验的配置 / Get configuration for specified experiment"""
     if exp_name not in EXPERIMENTS:
         raise ValueError(f"未知实验: {exp_name}，可选: {list(EXPERIMENTS.keys())}")
 
@@ -71,5 +78,5 @@ def get_experiment_config(exp_name):
 
 
 def list_experiments():
-    """列出所有可用实验"""
+    """列出所有可用实验 / List all available experiments"""
     return list(EXPERIMENTS.keys())

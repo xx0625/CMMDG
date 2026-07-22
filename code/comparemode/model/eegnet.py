@@ -1,8 +1,17 @@
+"""
+EEGNet - EEG信号分类的深度卷积神经网络
+EEGNet - Deep Convolutional Neural Network for EEG Signal Classification
+
+基于论文: EEGNet: A Compact Convolutional Network for EEG-based Brain-Computer Interfaces
+"""
+
 import torch
 import torch.nn as nn
 
 
 class EEGNet(nn.Module):
+    """EEGNet 模型类 - 用于脑电信号分类的深度卷积神经网络
+    EEGNet model class - Deep convolutional neural network for EEG signal classification"""
     def __init__(self, nb_classes, Chans=64, Samples=128,
                  dropout_rate=0.25, kern_length=64, F1=8,
                  D=2, F2=16, dropout_type='Dropout'):
@@ -90,7 +99,7 @@ class EEGNet(nn.Module):
         return nn.Softmax(dim=1)(x)
 
 
-# 测试代码
+# 测试代码 / Test code
 if __name__ == "__main__":
     model = EEGNet(nb_classes=2, Chans=14, Samples=64)
     x = torch.randn(1, 14, 64)  # (batch, channels, height, width)
